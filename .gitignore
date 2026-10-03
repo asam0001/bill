@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Operating System & IDE Artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# SQLite Databases & WAL temporary files
+medical_shop.db
+*.db-wal
+*.db-shm
+test_*.db
+*_sandbox.db
+backup_sandbox/
+audit_sandbox/
+
+# Backups and generated invoices
+backups/
+invoices/*.pdf
+invoices/*.xlsx
+
+# PyInstaller build outputs
+*.spec
+dist/
+build/
+
+# Android Studio & Gradle
+.gradle/
+**/build/
+captures/
+.externalNativeBuild/
+local.properties
+*.apk
+*.aab
+*.iml

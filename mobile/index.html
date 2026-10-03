@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MediTrack Mobile</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/icon.png">
+  <meta name="theme-color" content="#166534">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root {
+      --primary: #166534;
+      --primary-hover: #14532D;
+      --primary-light: #DCFCE7;
+      --primary-subtle: #F0FDF4;
+      --bg: #F7F8F6;
+      --surface: #FFFFFF;
+      --text: #171A17;
+      --text-muted: #647067;
+      --border: #E5E7E5;
+      --danger: #DC2626;
+      --warning: #D97706;
+      --success: #16A34A;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Bar */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .badge-status {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      font-weight: 500;
+    }
+
+    /* Content Area */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 80px; /* Space for bottom nav */
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dashboard Cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-card.highlight {
+      background: var(--primary-subtle);
+      border-color: var(--primary-light);
+    }
+
+    .metric-card.highlight .metric-value {
+      color: var(--primary);
+    }
+
+    /* Search Box */
+    .search-bar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--bg);
+      padding-bottom: 12px;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      padding-left: 42px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      box-shadow: var(--shadow);
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    /* Medicine List */
+    .med-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .med-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .med-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .med-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .med-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 8px;
+    }
+
+    .status-HEALTHY { background: var(--primary-light); color: var(--primary); }
+    .status-LOW_STOCK { background: #FEF3C7; color: var(--warning); }
+    .status-EXPIRING_SOON { background: #FFEDD5; color: #C2410C; }
+    .status-EXPIRED { background: #FEE2E2; color: var(--danger); }
+
+    .med-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 0.8rem;
+      background: var(--bg);
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .med-details span {
+      color: var(--text-muted);
+    }
+
+    .med-details strong {
+      color: var(--text);
+    }
+
+    .shelf-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #E0E7FF;
+      color: #3730A3;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-top: 4px;
+      width: fit-content;
+    }
+
+    /* Bottom Navigation */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 20;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      height: 100%;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 500;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .nav-icon {
+      font-size: 1.25rem;
+    }
+
+    /* Action Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:active {
+      background: var(--primary-hover);
+    }
+
+    /* Scanner View */
+    .scanner-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+
+    #camera-preview {
+      width: 100%;
+      max-width: 380px;
+      height: 260px;
+      background: #000;
+      border-radius: 12px;
+      object-fit: cover;
+      display: none;
+    }
+
+    .scanner-box {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 30px 20px;
+      width: 100%;
+      background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <span>💊</span> MediTrack Mobile
+    </div>
+    <div class="badge-status" id="connection-status">🟢 Offline LAN</div>
+  </header>
+
+  <!-- Main Scrollable Views -->
+  <main>
+
+    <!-- 1. DASHBOARD VIEW -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="metric-grid">
+        <div class="metric-card highlight">
+          <div class="metric-title">Today's Sales</div>
+          <div class="metric-value" id="val-today-sales">₹0.00</div>
+        </div>
+        <div class="metric-card highlight">
+          <div class="metric-title">Today's Profit</div>
+          <div class="metric-value" id="val-today-profit">₹0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Bills Generated</div>
+          <div class="metric-value" id="val-bill-count">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Low Stock Items</div>
+          <div class="metric-value" id="val-low-stock" style="color: var(--warning);">0</div>
+        </div>
+      </div>
+
+      <div class="med-card" style="margin-bottom: 14px;">
+        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px;">🏪 Shop Details</div>
+        <div id="shop-name-lbl" style="font-weight: 600; color: var(--primary);">MediTrack Pharmacy</div>
+        <div id="shop-address-lbl" style="font-size: 0.78rem; color: var(--text-muted);">Local Desktop Server</div>
+      </div>
+
+      <div class="med-card">
+        <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px;">⚠️ Expiry Watchlist (Next 90 Days)</div>
+        <div id="expiry-watchlist" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Loading expiry alerts...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. STOCK SEARCH VIEW -->
+    <section id="tab-stock" class="tab-content">
+      <div class="search-bar">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="stock-search-input" class="search-input" placeholder="Search medicine, batch, brand...">
+        </div>
+      </div>
+
+      <div id="stock-results" class="med-list">
+        <!-- Dynamic medicine list rows -->
+      </div>
+    </section>
+
+    <!-- 3. BARCODE SCANNER VIEW -->
+    <section id="tab-scanner" class="tab-content">
+      <div class="scanner-container">
+        <div class="scanner-box" id="scanner-placeholder">
+          <div style="font-size: 2.2rem; margin-bottom: 10px;">📷</div>
+          <h3 style="margin-bottom: 6px;">Aisle Barcode Scanner</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+            Point your mobile camera at a medicine barcode or QR box code to view shelf location and batch stock.
+          </p>
+          <button class="btn btn-primary" onclick="startCameraScanner()">Start Mobile Camera</button>
+        </div>
+        <video id="camera-preview" autoplay playsinline></video>
+        <div id="scan-result" style="width: 100%;"></div>
+      </div>
+    </section>
+
+    <!-- 4. QUICK BILL VIEW -->
+    <section id="tab-billing" class="tab-content">
+      <div class="med-card" style="margin-bottom: 14px;">
+        <h3 style="font-size: 1rem; margin-bottom: 10px;">⚡ Quick Mobile Counter Bill</h3>
+        <input type="text" id="bill-cust-name" class="search-input" style="padding-left: 12px; margin-bottom: 8px;" placeholder="Patient Name (Optional)" value="Walk-in Cash Patient">
+        <input type="tel" id="bill-cust-phone" class="search-input" style="padding-left: 12px; margin-bottom: 12px;" placeholder="Phone (Optional)">
+        
+        <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Select Medicine from Stock Search to Bill</div>
+        <div id="bill-cart-items" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">No medicines in mobile cart yet. Search stock to add.</div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-submit-bill" onclick="submitMobileBill()" style="display: none;">Complete Bill</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('dashboard')">
+      <span class="nav-icon">🏠</span>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('stock')">
+      <span class="nav-icon">💊</span>
+      <span>Stock</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('scanner')">
+      <span class="nav-icon">📷</span>
+      <span>Scan</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('billing')">
+      <span class="nav-icon">🧾</span>
+      <span>Bill</span>
+    </div>
+  </nav>
+
+  <!-- Client Application Logic -->
+  <script>
+    let activeTab = 'dashboard';
+    let mobileCart = [];
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      const targetTab = document.getElementById('tab-' + tabName);
+      if (targetTab) targetTab.classList.add('active');
+
+      const tabs = ['dashboard', 'stock', 'scanner', 'billing'];
+      const idx = tabs.indexOf(tabName);
+      if (idx >= 0) {
+        document.querySelectorAll('.nav-item')[idx].classList.add('active');
+      }
+
+      activeTab = tabName;
+      if (tabName === 'dashboard') loadDashboard();
+      if (tabName === 'stock') loadStock('');
+    }
+
+    // API: Load Dashboard
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+        if (data.status === 'ok') {
+          document.getElementById('val-today-sales').textContent = '₹' + data.today_sales.toFixed(2);
+          document.getElementById('val-today-profit').textContent = '₹' + data.today_profit.toFixed(2);
+          document.getElementById('val-bill-count').textContent = data.bills_count;
+          document.getElementById('val-low-stock').textContent = data.low_stock_count;
+          document.getElementById('shop-name-lbl').textContent = data.shop_name;
+          document.getElementById('shop-address-lbl').textContent = data.shop_address;
+
+          // Expiry List
+          const expContainer = document.getElementById('expiry-watchlist');
+          if (data.expiring_items && data.expiring_items.length > 0) {
+            expContainer.innerHTML = data.expiring_items.map(m => `
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:4px;">
+                <div>
+                  <strong>${m.name}</strong> <span style="font-size:0.75rem; color:#666;">(${m.batch_number})</span>
+                </div>
+                <span class="status-pill status-EXPIRING_SOON">${m.expiry_date}</span>
+              </div>
+            `).join('');
+          } else {
+            expContainer.innerHTML = '<div style="font-size:0.8rem; color:#666;">No medicines expiring in the next 90 days.</div>';
+          }
+        }
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+
+    // API: Search Stock
+    async function loadStock(query) {
+      try {
+        const res = await fetch('/api/medicines?q=' + encodeURIComponent(query));
+        const data = await res.json();
+        const container = document.getElementById('stock-results');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No medicines matching query.</div>';
+          return;
+        }
+
+        container.innerHTML = data.map(m => `
+          <div class="med-card">
+            <div class="med-header">
+              <div>
+                <div class="med-name">${m.name}</div>
+                <div class="med-sub">${m.manufacturer || 'General'} • Batch: ${m.batch_number}</div>
+              </div>
+              <span class="status-pill status-${m.stock_status}">${m.status_label}</span>
+            </div>
+
+            <div class="med-details">
+              <div>Stock: <strong>${m.strips} str (${m.total_tablets} tab)</strong></div>
+              <div>MRP: <strong>₹${m.mrp.toFixed(2)}</strong></div>
+              <div>Rate: <strong>₹${m.selling_price.toFixed(2)}</strong></div>
+              <div>Expiry: <strong>${m.expiry_date}</strong></div>
+            </div>
+
+            ${m.rack_shelf ? `<div class="shelf-pill">📍 ${m.rack_shelf}</div>` : ''}
+
+            <button class="btn btn-primary" style="margin-top:6px; padding:6px 12px; font-size:0.8rem;" onclick="addToMobileCart(${JSON.stringify(m).replace(/"/g, '&quot;')})">
+              ➕ Add to Quick Bill
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error fetching stock:', err);
+      }
+    }
+
+    // Search input listener
+    let searchDebounce;
+    document.getElementById('stock-search-input').addEventListener('input', (e) => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        loadStock(e.target.value.trim());
+      }, 300);
+    });
+
+    // Mobile Cart Management
+    function addToMobileCart(med) {
+      const existing = mobileCart.find(i => i.medicine_id === med.medicine_id && i.batch_number === med.batch_number);
+      if (existing) {
+        existing.quantity += med.tablets_per_strip;
+      } else {
+        mobileCart.push({
+          medicine_id: med.medicine_id,
+          name: med.name,
+          batch_number: med.batch_number,
+          batch_id: med.id,
+          quantity: med.tablets_per_strip,
+          rate: med.selling_price,
+          tps: med.tablets_per_strip
+        });
+      }
+      renderMobileCart();
+      switchTab('billing');
+    }
+
+    function renderMobileCart() {
+      const container = document.getElementById('bill-cart-items');
+      const submitBtn = document.getElementById('btn-submit-bill');
+
+      if (mobileCart.length === 0) {
+        container.innerHTML = '<div style="font-size:0.8rem; color:#888; font-style:italic;">No medicines in mobile cart yet. Search stock to add.</div>';
+        submitBtn.style.display = 'none';
+        return;
+      }
+
+      submitBtn.style.display = 'block';
+      let total = 0;
+      container.innerHTML = mobileCart.map((item, idx) => {
+        const itemVal = (item.quantity / item.tps) * item.rate;
+        total += itemVal;
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#F7F8F6; padding:8px 10px; border-radius:8px;">
+            <div>
+              <strong>${item.name}</strong><br>
+              <span style="font-size:0.75rem; color:#666;">${item.quantity} tablets (₹${itemVal.toFixed(2)})</span>
+            </div>
+            <button style="background:#FEE2E2; color:#DC2626; border:none; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="mobileCart.splice(${idx},1); renderMobileCart();">✕</button>
+          </div>
+        `;
+      }).join('') + `<div style="font-weight:700; font-size:1.1rem; text-align:right; margin-top:8px;">Total: ₹${total.toFixed(2)}</div>`;
+    }
+
+    // Submit Sale to Desktop Server
+    async function submitMobileBill() {
+      if (mobileCart.length === 0) return;
+      const cName = document.getElementById('bill-cust-name').value.trim() || 'Walk-in Cash Patient';
+      const cPhone = document.getElementById('bill-cust-phone').value.trim() || '';
+
+      const payload = {
+        customer_name: cName,
+        customer_phone: cPhone,
+        payment_mode: 'Cash',
+        discount_percent: 0.0,
+        cart_items: mobileCart.map(i => ({
+          medicine_id: i.medicine_id,
+          batch_number: i.batch_number,
+          quantity: i.quantity
+        }))
+      };
+
+      try {
+        const res = await fetch('/api/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === 'ok') {
+          alert('✅ Bill Generated Successfully: ' + result.bill_number + '\nSaved directly to desktop ERP!');
+          mobileCart = [];
+          renderMobileCart();
+          switchTab('dashboard');
+        } else {
+          alert('❌ Bill Error: ' + result.error);
+        }
+      } catch (err) {
+        alert('Network Error connecting to desktop: ' + err.message);
+      }
+    }
+
+    // Camera Barcode Scanner
+    async function startCameraScanner() {
+      const video = document.getElementById('camera-preview');
+      const placeholder = document.getElementById('scanner-placeholder');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        placeholder.style.display = 'none';
+
+        // Check if native BarcodeDetector API exists
+        if ('BarcodeDetector' in window) {
+          const barcodeDetector = new BarcodeDetector();
+          setInterval(async () => {
+            try {
+              const barcodes = await barcodeDetector.detect(video);
+              if (barcodes.length > 0) {
+                const code = barcodes[0].rawValue;
+                document.getElementById('scan-result').innerHTML = `
+                  <div class="med-card" style="margin-top:14px; text-align:left;">
+                    <strong>Scanned Barcode:</strong> ${code}
+                    <button class="btn btn-primary" onclick="searchScannedCode('${code}')" style="margin-top:8px;">Lookup in Inventory</button>
+                  </div>
+                `;
+              }
+            } catch (e) {}
+          }, 500);
+        }
+      } catch (err) {
+        alert('Could not start camera: ' + err.message + '\nEnsure camera permissions are allowed.');
+      }
+    }
+
+    function searchScannedCode(code) {
+      document.getElementById('stock-search-input').value = code;
+      switchTab('stock');
+      loadStock(code);
+    }
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // Initial load
+    loadDashboard();
+  </script>
+</body>
+</html>

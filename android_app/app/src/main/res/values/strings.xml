@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MediTrack Mobile</string>
+    <string name="server_prompt_title">Connect to Desktop ERP</string>
+    <string name="server_prompt_msg">Enter the local IP address of your MediTrack desktop PC (e.g. 192.168.1.15:8080):</string>
+    <string name="action_connect">Connect</string>
+    <string name="action_cancel">Cancel</string>
+</resources>
