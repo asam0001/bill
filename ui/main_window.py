@@ -92,6 +92,9 @@ class MainWindow(ctk.CTk):
         
         # Load Login Screen by default
         self.show_login_screen()
+
+        # Clean shutdown hook for background threads and mobile server
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
         
     def show_login_screen(self):
         # Hide sidebar
@@ -181,6 +184,15 @@ class MainWindow(ctk.CTk):
         
         if hasattr(self.active_frame, "refresh"):
             self.active_frame.refresh()
+
+    def on_close(self):
+        """Ensures background mobile server and threads are cleanly terminated upon exit."""
+        try:
+            from mobile_server import get_mobile_server
+            get_mobile_server().stop()
+        except Exception:
+            pass
+        self.destroy()
 
 if __name__ == "__main__":
     app = MainWindow()

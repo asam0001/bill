@@ -22,6 +22,15 @@ def main():
         print("Application failed to start:", str(e))
         import traceback
         traceback.print_exc()
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("MediTrack Startup Error", f"Application failed to start:\n\n{str(e)}")
+            root.destroy()
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     main()

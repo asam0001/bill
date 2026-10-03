@@ -32,10 +32,24 @@ def get_db_path() -> str:
 
     # Check if running as packaged binary (e.g. PyInstaller)
     if getattr(sys, "frozen", False):
-        app_data = os.environ.get("APPDATA") or os.path.expanduser("~")
-        data_dir = os.path.join(app_data, "MediTrack")
-        os.makedirs(data_dir, exist_ok=True)
-        return os.path.join(data_dir, DB_NAME)
+        exe_dir = os.path.dirname(sys.executable)
+        local_db = os.path.join(exe_dir, DB_NAME)
+        # 1. If local database already exists next to executable, prioritize it
+        if os.path.exists(local_db):
+            return local_db
+        # 2. If the folder is writable, operate in true zero-install portable mode
+        try:
+            test_file = os.path.join(exe_dir, ".meditrack_write_test")
+            with open(test_file, "w") as f:
+                f.write("ok")
+            os.remove(test_file)
+            return local_db
+        except Exception:
+            # 3. Fall back to user AppData if running from read-only directory (e.g. Program Files)
+            app_data = os.environ.get("APPDATA") or os.path.expanduser("~")
+            data_dir = os.path.join(app_data, "MediTrack")
+            os.makedirs(data_dir, exist_ok=True)
+            return os.path.join(data_dir, DB_NAME)
 
     # Default to local development/portable directory
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

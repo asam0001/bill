@@ -20,7 +20,23 @@ from utils.sales_service import get_bill_by_number, get_bill_items
 def ensure_directory_exists(path):
     directory = os.path.dirname(path)
     if directory and not os.path.exists(directory):
-        os.makedirs(directory)
+        os.makedirs(directory, exist_ok=True)
+
+def get_invoices_dir() -> str:
+    """Returns authoritative directory for invoice storage adjacent to active database."""
+    from database.db import get_db_path
+    db_dir = os.path.dirname(os.path.abspath(get_db_path()))
+    invoices_dir = os.path.join(db_dir, "invoices")
+    os.makedirs(invoices_dir, exist_ok=True)
+    return invoices_dir
+
+def get_reports_dir() -> str:
+    """Returns authoritative directory for exported Excel/PDF reports."""
+    from database.db import get_db_path
+    db_dir = os.path.dirname(os.path.abspath(get_db_path()))
+    reports_dir = os.path.join(db_dir, "reports_export")
+    os.makedirs(reports_dir, exist_ok=True)
+    return reports_dir
 
 def generate_invoice_pdf(bill_number, output_path=None):
     """
@@ -35,8 +51,7 @@ def generate_invoice_pdf(bill_number, output_path=None):
     
     # Setup Output Path
     if output_path is None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        output_path = os.path.join(base_dir, "invoices", f"invoice_{bill_number}.pdf")
+        output_path = os.path.join(get_invoices_dir(), f"invoice_{bill_number}.pdf")
         
     ensure_directory_exists(output_path)
     
@@ -252,8 +267,7 @@ def generate_report_excel(report_type, sales_data, top_sold, top_profitable, out
     Exports a comprehensive report to Excel.
     """
     if output_path is None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        output_path = os.path.join(base_dir, "reports_export", f"report_{report_type}_{datetime.now().strftime('%Y%m%d')}.xlsx")
+        output_path = os.path.join(get_reports_dir(), f"report_{report_type}_{datetime.now().strftime('%Y%m%d')}.xlsx")
         
     ensure_directory_exists(output_path)
     
@@ -401,8 +415,7 @@ def generate_report_pdf(report_type, sales_data, top_sold, top_profitable, outpu
     Generates a professional sales PDF report.
     """
     if output_path is None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        output_path = os.path.join(base_dir, "reports_export", f"report_{report_type}_{datetime.now().strftime('%Y%m%d')}.pdf")
+        output_path = os.path.join(get_reports_dir(), f"report_{report_type}_{datetime.now().strftime('%Y%m%d')}.pdf")
         
     ensure_directory_exists(output_path)
     
