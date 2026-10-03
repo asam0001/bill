@@ -13,6 +13,7 @@ import socket
 import threading
 from urllib.parse import urlparse, parse_qs
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+import shutil
 from typing import Any, Optional, Dict, List
 from datetime import datetime
 
@@ -96,6 +97,20 @@ class MobileAPIRequestHandler(BaseHTTPRequestHandler):
             return self._serve_file(os.path.join(mobile_dir, fname), "image/png")
         elif path == "/favicon.ico":
             return self._serve_file(os.path.join(mobile_dir, "favicon.ico"), "image/x-icon")
+        elif path in ("/download", "/download/zip", "/MediTrack-v2.0-Windows-Portable.zip", "/v2.0-windows-portable.zip"):
+            zip_path = os.path.join(BASE_DIR, "dist", "MediTrack-v2.0-Windows-Portable.zip")
+            if os.path.exists(zip_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/zip")
+                self.send_header("Content-Disposition", 'attachment; filename="MediTrack-v2.0-Windows-Portable.zip"')
+                self.send_header("Content-Length", str(os.path.getsize(zip_path)))
+                self.end_headers()
+                with open(zip_path, "rb") as f:
+                    shutil.copyfileobj(f, self.wfile)
+                return
+            else:
+                self.send_error(404, "Portable ZIP package not found on server.")
+                return
 
         # 2. REST API: Server Status & Pairing Info
         if path == "/api/status":
