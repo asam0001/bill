@@ -69,12 +69,24 @@ class LoginFrame(ctk.CTkFrame):
             
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT role FROM users WHERE username = ? AND password_hash = ?;", (username.lower(), password))
+        cursor.execute("SELECT id, role, password_hash FROM users WHERE username = ?;", (username.lower(),))
         row = cursor.fetchone()
-        conn.close()
         
         if row:
-            role = row['role']
-            self.controller.on_login_success(username, role)
-        else:
-            messagebox.showerror("Authentication Failed", "Invalid username or password.")
+            stored_hash = row['password_hash']
+            from utils.security import verify_password, hash_password
+            if verify_password(stored_hash, password):
+                # In-place upgrade if previously stored as legacy plaintext
+                if stored_hash == password:
+                    try:
+                        new_hash = hash_password(password)
+                        cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?;", (new_hash, row['id']))
+                        conn.commit()
+                    except Exception:
+                        pass
+                conn.close()
+                self.controller.on_login_success(username, row['role'])
+                return
+
+        conn.close()
+        messagebox.showerror("Authentication Failed", "Invalid username or password.")

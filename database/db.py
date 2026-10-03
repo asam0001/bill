@@ -172,9 +172,10 @@ def init_db(db_path: str = None) -> None:
     );
     """)
 
-    cursor.execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('admin', 'admin123', 'Admin');")
-    cursor.execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('pharmacist', 'pharm123', 'Pharmacist');")
-    cursor.execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('cashier', 'cashier123', 'Cashier');")
+    # Initial seed users with cryptographic salted hashes (Zero plaintext storage)
+    cursor.execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('admin', 'b658329973f212f1c6eea8a7355feed53ba9d8d9ae3842ebb200c7665a7d584b', 'Admin');")
+    cursor.execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('pharmacist', '6b258b526347beb114fab9175d054e4cc32730f3ad51b023f32aee8364d3809d', 'Pharmacist');")
+    cursor.execute("INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('cashier', 'ffd2b6c83c74fe069fd535dbef511f0c8a5dc355848f9451d71d514337fb7013', 'Cashier');")
 
     # --------------------------------------------------------------------------
     # 3. Suppliers Table (Section 10)

@@ -94,6 +94,18 @@ class SettingsFrame(ctk.CTkFrame):
             command=self.show_pairing_qr_dialog
         )
         self.btn_show_qr.grid(row=0, column=1, padx=(4, 0), sticky="ew")
+
+        # Security & Password Section
+        self.btn_change_pw = ctk.CTkButton(
+            self.left_panel,
+            text="🔐 Change Login Password",
+            height=34,
+            fg_color="#374151",
+            hover_color="#1F2937",
+            text_color="white",
+            command=self.show_change_password_dialog
+        )
+        self.btn_change_pw.grid(row=current_row+1, column=0, padx=20, pady=(0, 15), sticky="ew")
         
         # --- RIGHT PANEL: BACKUP & RESTORE ---
         self.right_panel = ctk.CTkFrame(self, fg_color=Theme.BG_PANEL, border_color=Theme.BORDER_COLOR, border_width=1, corner_radius=10)
@@ -294,3 +306,50 @@ class SettingsFrame(ctk.CTkFrame):
             command=dialog.destroy
         )
         btn_close.pack(pady=16)
+
+    def show_change_password_dialog(self):
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Change Account Password")
+        dialog.geometry("380x380")
+        dialog.resizable(False, False)
+        dialog.configure(fg_color=Theme.BG_WINDOW)
+        dialog.transient(self)
+        dialog.grab_set()
+
+        ctk.CTkLabel(dialog, text="🔐 Update Account Password", font=ctk.CTkFont(size=16, weight="bold"), text_color=Theme.PRIMARY).pack(pady=(20, 10))
+
+        active_user = getattr(self.controller, "current_user", "admin") or "admin"
+        ctk.CTkLabel(dialog, text=f"Active Account: {active_user}", font=ctk.CTkFont(size=12, weight="bold"), text_color=Theme.TEXT_MAIN).pack(pady=(0, 15))
+
+        old_pw = ctk.CTkEntry(dialog, placeholder_text="Current Password...", show="*", width=280, height=35)
+        old_pw.pack(pady=6)
+
+        new_pw = ctk.CTkEntry(dialog, placeholder_text="New Password (min 6 characters)...", show="*", width=280, height=35)
+        new_pw.pack(pady=6)
+
+        confirm_pw = ctk.CTkEntry(dialog, placeholder_text="Confirm New Password...", show="*", width=280, height=35)
+        confirm_pw.pack(pady=6)
+
+        def save_pw():
+            cur = old_pw.get().strip()
+            npw = new_pw.get().strip()
+            cpw = confirm_pw.get().strip()
+            if not cur or not npw:
+                messagebox.showerror("Error", "Please fill in all fields.", parent=dialog)
+                return
+            if npw != cpw:
+                messagebox.showerror("Mismatch", "New password and confirmation do not match.", parent=dialog)
+                return
+            if len(npw) < 6:
+                messagebox.showerror("Security Policy", "New password must be at least 6 characters long.", parent=dialog)
+                return
+
+            from utils.security import change_password
+            ok, msg = change_password(active_user, cur, npw)
+            if ok:
+                messagebox.showinfo("Success", "Password updated successfully!", parent=dialog)
+                dialog.destroy()
+            else:
+                messagebox.showerror("Failed", msg, parent=dialog)
+
+        ctk.CTkButton(dialog, text="Update Password", fg_color=Theme.PRIMARY, hover_color=Theme.PRIMARY_HOVER, command=save_pw, width=280, height=38).pack(pady=16)

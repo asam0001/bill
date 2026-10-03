@@ -298,13 +298,17 @@ python seed_data.py
 
 ---
 
-### Default Login Credentials
+### User Profiles & Access Roles
 
-| Profile Role | Username | Password | Access Scope |
+MediTrack provides role-based security out of the box with cryptographic password hashing (zero plaintext password storage):
+
+| Profile Role | Default Username | Initial Access Policy | Permissions Scope |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `admin123` | Full access to all 12 modules, settings, backups, accounts, and override permissions |
-| **Pharmacist** | `pharmacist` | `pharma123` | POS billing, stock inventory, purchases, supplier intake, returns, and expiry tracker |
-| **Cashier** | `cashier` | `cashier123` | Fast POS billing, customer search, sales history, and stock lookup |
+| **Administrator** | `admin` | Set during initialization / Change in Settings | Full access to all 12 modules, financial audits, settings, and database recovery |
+| **Pharmacist** | `pharmacist` | Configured by Administrator | POS billing, stock inventory, purchases, supplier intake, returns, and expiry tracker |
+| **Cashier** | `cashier` | Configured by Administrator | Fast POS counter billing, customer search, sales history, and stock lookup |
+
+> 🔒 **Security Notice**: All user passwords in MediTrack are cryptographically salted and hashed via SHA-256 (`utils/security.py`). Default initial accounts should be updated immediately upon first login by navigating to **⚙️ System Settings > Change Login Password**.
 
 ---
 
